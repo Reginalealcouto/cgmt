@@ -34,3 +34,5 @@ if not df.empty:
     fig, ax = plt.subplots()
     contagem.plot(kind="bar", ax=ax)
     st.pyplot(fig)
+
+
