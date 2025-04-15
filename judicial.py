@@ -1,38 +1,63 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import os
 
-# Nome do arquivo
-DB_FILE = "respostas.csv"
+DB_FILE = "dados_formulario.csv"
 
-# Carrega ou cria o "banco de dados"
+# Carrega ou cria o banco de dados
 if os.path.exists(DB_FILE):
     df = pd.read_csv(DB_FILE)
 else:
-    df = pd.DataFrame(columns=["Nome", "Escolha"])
+    df = pd.DataFrame(columns=["Processo", "Procedimento", "ProcedimentoOutro", "TerrasIndigenas"])
 
-# Formulário
-st.title("Formulário de Respostas")
+# Interface
+st.title("Formulário - Procedimentos em Terras Indígenas")
 
-with st.form("form1"):
-    nome = st.text_input("Seu nome")
-    escolha = st.selectbox("Escolha uma opção", ["Maçã", "Banana", "Uva", "Laranja"])
+with st.form("formulario_principal"):
+    processo = st.text_input("Processo nº")
+    
+    tipo_procedimento = st.selectbox(
+        "Tipo de procedimento",
+        ["Inquérito civil", "Notícia de fato", "PAJ coletivo", "Procedimento administrativo", "Outro"]
+    )
+
+    outro_procedimento = ""
+    if tipo_procedimento == "Outro":
+        outro_procedimento = st.text_input("Descreva o tipo de procedimento")
+
+    terras_disponiveis = [
+        "Terra Indígena Yanomami",
+        "Terra Indígena Raposa Serra do Sol",
+        "Terra Indígena Xingu",
+        "Terra Indígena Truká",
+        "Terra Indígena Guarani",
+        "Outra"
+    ]
+    
+    terras_selecionadas = st.multiselect(
+        "Selecione a(s) Terra(s) Indígena(s)",
+        terras_disponiveis
+    )
+    
     submitted = st.form_submit_button("Enviar")
 
-    if submitted and nome:
-        novo_dado = pd.DataFrame([[nome, escolha]], columns=["Nome", "Escolha"])
-        df = pd.concat([df, novo_dado], ignore_index=True)
+    if submitted and processo:
+        nova_linha = pd.DataFrame([{
+            "Processo": processo,
+            "Procedimento": tipo_procedimento,
+            "ProcedimentoOutro": outro_procedimento,
+            "TerrasIndigenas": "; ".join(terras_selecionadas)
+        }])
+        
+        df = pd.concat([df, nova_linha], ignore_index=True)
         df.to_csv(DB_FILE, index=False)
-        st.success("Resposta registrada com sucesso!")
+        st.success("Dados salvos com sucesso!")
 
-# Gráfico de frequência
-st.subheader("Distribuição das escolhas")
-
+# Visualização opcional
 if not df.empty:
-    contagem = df["Escolha"].value_counts()
-    fig, ax = plt.subplots()
-    contagem.plot(kind="bar", ax=ax)
+    st.subheader("Dados salvos")
+    st.dataframe(df)
+
     st.pyplot(fig)
 
 
